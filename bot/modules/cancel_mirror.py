@@ -28,14 +28,16 @@ def cancel_mirror(update, context):
             except:
                 dl = None
         if not dl:
-            return sendMessage(f"This is not an active task!", context.bot, update)
+            return sendMessage("This is not an active task!", context.bot, update)
     elif len(args) == 1:
         msg = f"Reply to an active <code>/{BotCommands.MirrorCommand}</code> message which was used to start the download or send <code>/{BotCommands.CancelMirror} GID</code> to cancel it!"
         return sendMessage(msg, context.bot, update.message)
 
-    if OWNER_ID == user_id or dl.message.from_user.id == user_id or user_id in SUDO_USERS:
-        pass
-    else:
+    if (
+        OWNER_ID != user_id
+        and dl.message.from_user.id != user_id
+        and user_id not in SUDO_USERS
+    ):
         return sendMessage("This task doesn't belong to you!", context.bot, update)
 
     if dl.status() == MirrorStatus.STATUS_ARCHIVING:
@@ -49,15 +51,11 @@ def cancel_mirror(update, context):
 
 def cancel_all(update, context):
     gid = ''
-    while True:
-        dl = getAllDownload()
-        if dl:
-            if dl.gid() != gid:
-                gid = dl.gid()
-                dl.download().cancel_download()
-                sleep(1)
-        else:
-            break
+    while dl := getAllDownload():
+        if dl.gid() != gid:
+            gid = dl.gid()
+            dl.download().cancel_download()
+            sleep(1)
 
 def cancell_all_buttons(update, context):
     buttons = button_build.ButtonMaker()
